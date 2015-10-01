@@ -1,0 +1,1 @@
+<h2>Hello <%= inspect @conn.assigns %></h2>
