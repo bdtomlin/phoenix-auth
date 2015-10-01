@@ -5,17 +5,27 @@ defmodule Support.IssueController do
 
   plug :scrub_params, "issue" when action in [:create, :update]
 
-  def index(conn, _params) do
+  # in order to always pass in current user
+  def action(conn, _) do
+    apply(__MODULE__, action_name(conn), [conn, conn.assigns.current_user, conn.params])
+  end
+
+  def index(conn, user, _params) do
     issues = Repo.all(Issue)
     render(conn, "index.html", issues: issues)
   end
 
-  def new(conn, _params) do
+  def index(conn, user, _params) do
+    issues = Repo.all(Issue)
+    render(conn, "index.html", issues: issues)
+  end
+
+  def new(conn, user, _params) do
     changeset = Issue.changeset(%Issue{})
     render(conn, "new.html", changeset: changeset)
   end
 
-  def create(conn, %{"issue" => issue_params}) do
+  def create(conn, user, %{"issue" => issue_params}) do
     changeset = Issue.changeset(%Issue{}, issue_params)
 
     case Repo.insert(changeset) do
@@ -28,18 +38,18 @@ defmodule Support.IssueController do
     end
   end
 
-  def show(conn, %{"id" => id}) do
+  def show(conn, user, %{"id" => id}) do
     issue = Repo.get!(Issue, id)
     render(conn, "show.html", issue: issue)
   end
 
-  def edit(conn, %{"id" => id}) do
+  def edit(conn, user, %{"id" => id}) do
     issue = Repo.get!(Issue, id)
     changeset = Issue.changeset(issue)
     render(conn, "edit.html", issue: issue, changeset: changeset)
   end
 
-  def update(conn, %{"id" => id, "issue" => issue_params}) do
+  def update(conn, user, %{"id" => id, "issue" => issue_params}) do
     issue = Repo.get!(Issue, id)
     changeset = Issue.changeset(issue, issue_params)
 
@@ -53,7 +63,7 @@ defmodule Support.IssueController do
     end
   end
 
-  def delete(conn, %{"id" => id}) do
+  def delete(conn, user, %{"id" => id}) do
     issue = Repo.get!(Issue, id)
 
     # Here we use delete! (with a bang) because we expect
